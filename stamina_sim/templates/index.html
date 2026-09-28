@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stamina Strategy Simulator</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2335858E'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-title-group">
+          <h1>Stamina Strategy Simulator</h1>
+          <p class="topbar-tagline">Four strategies. Same stamina. Who plays it best?</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="audio-toggle" id="audio-toggle" type="button" aria-label="Mute background music" title="Mute background music">🔊</button>
+          <button class="topbar-help" id="how-it-works-btn" type="button">How It Works</button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside class="controls-panel" aria-labelledby="controls-title">
+          <h2 id="controls-title">Configure Your Simulation</h2>
+          <fieldset>
+            <legend>Strategies</legend>
+            <div id="strategy-checkboxes"></div>
+            <p class="control-helper">Select which strategies to include in this run</p>
+          </fieldset>
+
+          <fieldset id="stamina-level">
+            <legend>Stamina level</legend>
+            <div id="stamina-options"></div>
+            <p class="control-helper">Starting stamina available to every strategy</p>
+          </fieldset>
+
+          <div class="range-control">
+            <label for="turns-slider">Turns per run: <output id="turns-value" for="turns-slider">20</output></label>
+            <input type="range" id="turns-slider" min="5" max="50" value="20">
+            <p class="control-helper">Number of decision points per simulated run</p>
+          </div>
+
+          <div class="range-control">
+            <label for="repetitions-slider">Repetitions: <output id="repetitions-value" for="repetitions-slider">100</output></label>
+            <input type="range" id="repetitions-slider" min="10" max="500" value="100">
+            <p class="control-helper">How many times each strategy repeats this scenario</p>
+          </div>
+
+          <button type="button" id="run-btn">Run Simulation</button>
+        </aside>
+
+        <main class="results-area" aria-labelledby="results-title">
+          <div class="results-topbar">
+            <section class="results-heading">
+              <h2 id="results-title">Results</h2>
+              <p id="results-subtitle" aria-live="polite">Summary statistics for the selected settings.</p>
+            </section>
+            <button type="button" id="download-btn">Download Results (CSV)</button>
+          </div>
+          <p id="results-empty-state" class="results-empty-state">Configure your settings and click Run Simulation to see results.</p>
+          <div class="results-grid">
+            <section id="summary-table" class="result-card" aria-label="Simulation summary" hidden></section>
+            <section id="score-chart" class="result-card" aria-label="Score chart" hidden>
+              <h3 class="chart-card-title">Average Score by Strategy</h3>
+              <div class="chart-canvas-container">
+                <canvas role="img" aria-label="Average Score by Strategy"></canvas>
+              </div>
+            </section>
+            <section id="success-chart" class="result-card" aria-label="Success rate chart" hidden>
+              <h3 class="chart-card-title">Average Success Rate by Strategy</h3>
+              <div class="chart-canvas-container">
+                <canvas role="img" aria-label="Average Success Rate by Strategy"></canvas>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+
+      <footer class="site-footer">
+        Stamina Strategy Simulator — a decision-strategy comparison tool
+      </footer>
+    </div>
+
+    <div class="modal-overlay" id="how-it-works-modal" hidden>
+      <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="how-it-works-title" tabindex="-1">
+        <div class="modal-header">
+          <h2 id="how-it-works-title">How It Works</h2>
+          <button class="modal-close" id="close-how-it-works" type="button" aria-label="Close dialog">&times;</button>
+        </div>
+        <p class="modal-intro">Every strategy starts with the same stamina and faces the same situations. Run the simulation to see how each one performs.</p>
+        <div class="modal-strategies">
+          <div class="modal-strategy-row">
+            <span class="strategy-dot dot-primary" aria-hidden="true"></span>
+            <strong>Conservative</strong>
+            <span>Plays it safe. Saves stamina for later turns.</span>
+          </div>
+          <div class="modal-strategy-row">
+            <span class="strategy-dot dot-secondary" aria-hidden="true"></span>
+            <strong>Aggressive</strong>
+            <span>Goes all in. Burns stamina fast for quick points.</span>
+          </div>
+          <div class="modal-strategy-row">
+            <span class="strategy-dot dot-primary" aria-hidden="true"></span>
+            <strong>Risk-Taking</strong>
+            <span>Chases the biggest reward, even at long odds.</span>
+          </div>
+          <div class="modal-strategy-row">
+            <span class="strategy-dot dot-secondary" aria-hidden="true"></span>
+            <strong>Balanced</strong>
+            <span>Weighs cost against reward before every move.</span>
+          </div>
+        </div>
+        <p class="modal-footer">Score = points earned. Success rate = percent of actions that landed. Stamina remaining shows what's left unused.</p>
+      </section>
+    </div>
+
+    <audio id="click-sound" src="/static/audio/bling.mp3" preload="auto" hidden></audio>
+    <audio id="bg-music" src="/static/audio/background.mp3" preload="auto" loop hidden></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
