@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	};
 
 	const startBackgroundMusic = () => {
-		backgroundMusic.volume = 0.15;
+		backgroundMusic.volume = 0.30;
 		backgroundMusic.play().catch(() => {});
 		document.removeEventListener("pointerdown", startBackgroundMusic);
 		document.removeEventListener("keydown", startBackgroundMusic);
