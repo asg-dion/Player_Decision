@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 	const strategyContainer = document.getElementById("strategy-checkboxes");
 	const staminaContainer = document.getElementById("stamina-options");
+	const difficultyContainer = document.getElementById("difficulty-options");
 	const turnsSlider = document.getElementById("turns-slider");
 	const turnsValue = document.getElementById("turns-value");
 	const repetitionsSlider = document.getElementById("repetitions-slider");
@@ -20,6 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
 	const audioToggle = document.getElementById("audio-toggle");
 	let scoreChart = null;
 	let successChart = null;
+
+	const hideDownloadButton = () => {
+		downloadButton.hidden = true;
+	};
+
+	const showDownloadButton = () => {
+		downloadButton.hidden = false;
+	};
 
 	const playClickSound = () => {
         clickSound.volume = 0.50;
@@ -185,6 +194,37 @@ document.addEventListener("DOMContentLoaded", () => {
 			console.error(error);
 		});
 
+	fetch("/api/difficulty-levels")
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error("Unable to load difficulty levels.");
+			}
+			return response.json();
+		})
+		.then((difficultyLevels) => {
+			difficultyLevels.forEach((difficulty) => {
+				const row = document.createElement("div");
+				const radio = document.createElement("input");
+				const label = document.createElement("label");
+
+				radio.type = "radio";
+				radio.id = `difficulty-${difficulty}`;
+				radio.name = "difficulty";
+				radio.value = difficulty;
+				radio.checked = difficulty === "medium";
+				radio.addEventListener("click", playClickSound);
+
+				label.htmlFor = radio.id;
+				label.textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+
+				row.append(radio, label);
+				difficultyContainer.append(row);
+			});
+		})
+		.catch((error) => {
+			console.error(error);
+		});
+
 	const updateValue = (slider, output) => {
 		output.value = slider.value;
 		output.textContent = slider.value;
@@ -204,15 +244,21 @@ document.addEventListener("DOMContentLoaded", () => {
 		stamina_level: staminaContainer.querySelector(
 			'input[type="radio"]:checked',
 		)?.value,
+		difficulty: difficultyContainer.querySelector(
+			'input[type="radio"]:checked',
+		)?.value || "medium",
 		turns: Number(turnsSlider.value),
 		repetitions: Number(repetitionsSlider.value),
 	});
 
 	strategyContainer.addEventListener("change", () => {
+		hideDownloadButton();
 		if (strategyContainer.querySelector('input[type="checkbox"]:checked')) {
 			strategyWarning.hidden = true;
 		}
 	});
+	staminaContainer.addEventListener("change", hideDownloadButton);
+	difficultyContainer.addEventListener("change", hideDownloadButton);
 
 	let previouslyFocusedElement = null;
 	const closeHowItWorksModal = () => {
@@ -239,9 +285,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 	turnsSlider.addEventListener("input", () => {
+		hideDownloadButton();
 		updateValue(turnsSlider, turnsValue);
 	});
 	repetitionsSlider.addEventListener("input", () => {
+		hideDownloadButton();
 		updateValue(repetitionsSlider, repetitionsValue);
 	});
 
@@ -249,6 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	updateValue(repetitionsSlider, repetitionsValue);
 
 	runButton.addEventListener("click", async () => {
+		hideDownloadButton();
 		const settings = getCurrentSettings();
 		if (settings.strategies.length === 0) {
 			strategyWarning.hidden = false;
@@ -322,7 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			summaryContainer.replaceChildren(table);
 			revealResultCard(summaryContainer);
 			resultsEmptyState.hidden = true;
-			resultsSubtitle.textContent = `Based on ${settings.repetitions} runs per strategy at ${settings.stamina_level} stamina, ${settings.turns} turns each`;
+			resultsSubtitle.textContent = `Based on ${settings.repetitions} runs per strategy at ${settings.stamina_level} stamina, ${settings.difficulty} difficulty, ${settings.turns} turns each`;
 
 			revealResultCard(scoreChartContainer);
 			scoreChart = renderBarChart(
@@ -343,7 +392,9 @@ document.addEventListener("DOMContentLoaded", () => {
 				"#7CA88C",
 				true,
 			);
+			showDownloadButton();
 		} catch (error) {
+			hideDownloadButton();
 			simulationError.textContent = "Something went wrong running the simulation. Try again.";
 			simulationError.hidden = false;
 		} finally {

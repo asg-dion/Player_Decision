@@ -16,16 +16,15 @@
 html,
 body {
 	width: 100%;
-	height: 100%;
+	min-height: 100%;
+	height: auto;
 	margin: 0;
 }
 
 body {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
-	grid-template-rows: minmax(0, 1fr);
-	height: 100vh;
-	overflow: hidden;
+	min-height: 100vh;
+	overflow-x: hidden;
+	overflow-y: auto;
 	background: var(--bg);
 	color: var(--text);
 	font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -99,12 +98,11 @@ input:focus-visible {
 }
 
 .app-shell {
-	display: grid;
-	grid-template-rows: auto minmax(0, 1fr) auto;
-	height: 100%;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
 	min-width: 0;
-	min-height: 0;
-	overflow: hidden;
+	overflow: visible;
 }
 
 .topbar {
@@ -152,9 +150,9 @@ input:focus-visible {
 	align-items: stretch;
 	gap: 16px;
 	min-width: 0;
-	min-height: 0;
+	min-height: auto;
 	padding: 16px;
-	overflow: auto;
+	overflow: visible;
 }
 
 .controls-panel,
@@ -164,7 +162,7 @@ input:focus-visible {
 }
 
 .controls-panel {
-	padding: 20px;
+	padding: 16px;
 	border: 1px solid rgb(244 247 238 / 18%);
 	border-radius: 12px;
 	background: var(--panel-dark);
@@ -172,7 +170,7 @@ input:focus-visible {
 }
 
 .controls-panel h2 {
-	margin: 0 0 20px;
+	margin: 0 0 16px;
 	color: var(--text-on-dark);
 	font-size: 16px;
 	font-weight: 700;
@@ -180,7 +178,7 @@ input:focus-visible {
 
 .controls-panel fieldset {
 	min-width: 0;
-	margin: 0 0 20px;
+	margin: 0 0 16px;
 	padding: 0;
 	border: 0;
 }
@@ -197,20 +195,20 @@ input:focus-visible {
 }
 
 #strategy-checkboxes,
-#stamina-options {
+.radio-options {
 	display: grid;
 	gap: 6px;
 }
 
 #strategy-checkboxes > div,
-#stamina-options > div {
+.radio-options > div {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 }
 
 #strategy-checkboxes label,
-#stamina-options label {
+.radio-options label {
 	font-weight: 450;
 }
 
@@ -250,7 +248,7 @@ input[type="radio"] {
 }
 
 .range-control {
-	margin-bottom: 20px;
+	margin-bottom: 16px;
 }
 
 .range-control label {
@@ -310,13 +308,13 @@ input[type="range"]::-moz-range-thumb {
 }
 
 #run-btn {
-	background: var(--tint);
-	color: var(--panel-dark);
+	background: var(--panel-dark);
+	color: #FFFFFF;
 	font-weight: 750;
 }
 
 #run-btn:hover {
-	background: #D5E3B2;
+	background: #2C6B72;
 	filter: none;
 }
 
@@ -324,7 +322,7 @@ input[type="range"]::-moz-range-thumb {
 	display: grid;
 	grid-template-rows: auto auto auto;
 	align-content: start;
-	gap: 12px;
+	gap: 8px;
 }
 
 .results-topbar {
@@ -332,6 +330,17 @@ input[type="range"]::-moz-range-thumb {
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
+}
+
+.results-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.results-download {
+	justify-content: flex-end;
+	margin-top: 16px;
 }
 
 .results-heading h2 {
@@ -363,7 +372,7 @@ input[type="range"]::-moz-range-thumb {
 
 .results-empty-state {
 	margin: 0;
-	padding: 20px;
+	padding: 16px;
 	border: 1px dashed var(--tint);
 	border-radius: 12px;
 	background: var(--card-bg);
@@ -467,14 +476,6 @@ input[type="range"]::-moz-range-thumb {
 	display: block;
 	width: 100% !important;
 	height: 280px !important;
-}
-
-.site-footer {
-	padding: 12px 24px;
-	border-top: 1px solid var(--tint);
-	background: var(--card-bg);
-	color: var(--secondary);
-	font-size: 12px;
 }
 
 @media (max-width: 1403px) {

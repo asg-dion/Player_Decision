@@ -2,22 +2,41 @@
 
 import random
 from collections.abc import Callable
+from typing import TypedDict
 
 from config import ACTIONS, MAX_STAMINA
 
 ActionData = dict[str, int | float]
 Actions = dict[str, ActionData]
 Strategy = Callable[[int, Actions], str | None]
-TurnResult = dict[str, int | str | bool]
 SimulationStrategy = Callable[[int, Actions], str | None]
 
 
-def run_turn(stamina: int, action_name: str | None) -> TurnResult:
+class TurnResult(TypedDict, total=False):
+    skipped: bool
+    stamina_remaining: int
+    action_taken: str
+    success: bool
+    points_earned: int
+
+
+class SimulationResult(TypedDict):
+    log: list[TurnResult]
+    final_stamina: int
+    total_score: int
+    turns_completed: int
+    successes: int
+    failures: int
+
+
+def run_turn(
+    stamina: int, action_name: str | None, actions_dict: Actions = ACTIONS
+) -> TurnResult:
     """Resolve one selected action, or record a skipped turn."""
     if action_name is None:
         return {"skipped": True}
 
-    action = ACTIONS[action_name]
+    action = actions_dict[action_name]
     stamina_cost = int(action["stamina_cost"])
     if stamina < stamina_cost:
         return {"skipped": True}
@@ -35,7 +54,8 @@ def run_simulation(
     strategy_function: SimulationStrategy,
     starting_stamina: int,
     num_turns: int,
-) -> dict[str, int | list[TurnResult]]:
+    actions_dict: Actions = ACTIONS,
+) -> SimulationResult:
     """Run a fixed number of turns and collect score and action outcomes.
 
     Skipped turns are included in the log and ``turns_completed`` count, but
@@ -48,8 +68,8 @@ def run_simulation(
     log: list[TurnResult] = []
 
     for _ in range(num_turns):
-        action_name = strategy_function(current_stamina, ACTIONS)
-        result = run_turn(current_stamina, action_name)
+        action_name = strategy_function(current_stamina, actions_dict)
+        result = run_turn(current_stamina, action_name, actions_dict)
         log.append(result)
 
         if result.get("skipped"):

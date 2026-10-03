@@ -31,8 +31,14 @@
 
           <fieldset id="stamina-level">
             <legend>Stamina level</legend>
-            <div id="stamina-options"></div>
+            <div id="stamina-options" class="radio-options"></div>
             <p class="control-helper">Starting stamina available to every strategy</p>
+          </fieldset>
+
+          <fieldset id="difficulty-level">
+            <legend>Situation difficulty</legend>
+            <div id="difficulty-options" class="radio-options"></div>
+            <p class="control-helper">How risky and costly each action is this run.</p>
           </fieldset>
 
           <div class="range-control">
@@ -47,7 +53,6 @@
             <p class="control-helper">How many times each strategy repeats this scenario</p>
           </div>
 
-          <button type="button" id="run-btn">Run Simulation</button>
         </aside>
 
         <main class="results-area" aria-labelledby="results-title">
@@ -56,7 +61,9 @@
               <h2 id="results-title">Results</h2>
               <p id="results-subtitle" aria-live="polite">Summary statistics for the selected settings.</p>
             </section>
-            <button type="button" id="download-btn">Download Results (CSV)</button>
+            <div class="results-actions">
+              <button type="button" id="run-btn">Run Simulation</button>
+            </div>
           </div>
           <p id="results-empty-state" class="results-empty-state">Configure your settings and click Run Simulation to see results.</p>
           <div class="results-grid">
@@ -74,12 +81,12 @@
               </div>
             </section>
           </div>
+          <div class="results-actions results-download">
+            <button type="button" id="download-btn" hidden>Download Results (CSV)</button>
+          </div>
         </main>
       </div>
 
-      <footer class="site-footer">
-        Stamina Strategy Simulator — a decision-strategy comparison tool
-      </footer>
     </div>
 
     <div class="modal-overlay" id="how-it-works-modal" hidden>

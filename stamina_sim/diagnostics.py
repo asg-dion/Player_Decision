@@ -1,6 +1,11 @@
 """Run direct diagnostics for strategy thresholds and action failure rates."""
 
-from config import ACTIONS, MAX_STAMINA, STAMINA_LEVELS
+from config import (
+    ACTIONS,
+    MAX_STAMINA,
+    STAMINA_LEVELS,
+    get_actions_for_difficulty,
+)
 from simulation import run_simulation, run_turn
 from strategies import STRATEGIES, conservative_strategy
 
@@ -52,14 +57,42 @@ def check_risky_failure_rate() -> bool:
     return passed
 
 
+def check_hard_difficulty_values() -> bool:
+    """Compare hard difficulty action values with the base configuration."""
+    hard_actions = get_actions_for_difficulty("hard")
+    print("\nCHECK 3 — Hard difficulty action values")
+
+    passed = True
+    for action_name, base_action in ACTIONS.items():
+        hard_action = hard_actions[action_name]
+        print(
+            f"  {action_name}: failure_chance "
+            f"{base_action['failure_chance']:.3f} -> "
+            f"{hard_action['failure_chance']:.3f}; stamina_cost "
+            f"{base_action['stamina_cost']} -> {hard_action['stamina_cost']}"
+        )
+
+        expected_failure_chance = min(1.0, base_action["failure_chance"] * 1.75)
+        expected_stamina_cost = max(1, round(base_action["stamina_cost"] * 1.2))
+        passed = passed and (
+            hard_action["failure_chance"] == expected_failure_chance
+            and hard_action["stamina_cost"] == expected_stamina_cost
+        )
+
+    print(f"CHECK 3: {'PASS' if passed else 'FAIL'}")
+    return passed
+
+
 def main() -> None:
     """Run both diagnostics and print the final check summary."""
     _ = STRATEGIES, run_simulation
     conservative_passed = check_conservative_strategy()
     risky_passed = check_risky_failure_rate()
+    hard_difficulty_passed = check_hard_difficulty_values()
     print("\nFinal summary:")
     print(f"CHECK 1: {'PASS' if conservative_passed else 'FAIL'}")
     print(f"CHECK 2: {'PASS' if risky_passed else 'FAIL'}")
+    print(f"CHECK 3: {'PASS' if hard_difficulty_passed else 'FAIL'}")
 
 
 if __name__ == "__main__":

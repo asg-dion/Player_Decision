@@ -5,20 +5,21 @@ import json
 import pandas as pd
 from flask import Flask, Response, jsonify, render_template, request
 
-from config import ACTIONS, STAMINA_LEVELS
+from config import DIFFICULTY_LEVELS, STAMINA_LEVELS, get_actions_for_difficulty
 from simulation import run_simulation
 from strategies import STRATEGIES
 
 app = Flask(__name__)
 
 
-def _get_run_parameters() -> tuple[list[str], str, int, int, int]:
+def _get_run_parameters() -> tuple[list[str], str, int, str, int, int]:
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict):
         raise ValueError("Request body must be a JSON object.")
 
     selected_strategies = payload.get("strategies")
     stamina_level = payload.get("stamina_level")
+    difficulty = payload.get("difficulty", "medium")
     turns = payload.get("turns")
     repetitions = payload.get("repetitions")
 
@@ -30,6 +31,8 @@ def _get_run_parameters() -> tuple[list[str], str, int, int, int]:
         raise ValueError("strategies must be a non-empty list of known strategy names.")
     if not isinstance(stamina_level, str) or stamina_level not in STAMINA_LEVELS:
         raise ValueError("stamina_level must be low, medium, or high.")
+    if not isinstance(difficulty, str) or difficulty not in DIFFICULTY_LEVELS:
+        raise ValueError("difficulty must be easy, medium, or hard.")
     if type(turns) is not int or turns <= 0:
         raise ValueError("turns must be a positive integer.")
     if type(repetitions) is not int or repetitions <= 0:
@@ -39,6 +42,7 @@ def _get_run_parameters() -> tuple[list[str], str, int, int, int]:
         selected_strategies,
         stamina_level,
         STAMINA_LEVELS[stamina_level],
+        difficulty,
         turns,
         repetitions,
     )
@@ -47,6 +51,7 @@ def _get_run_parameters() -> tuple[list[str], str, int, int, int]:
 def _generate_raw_results(
     selected_strategies: list[str],
     starting_stamina: int,
+    actions_dict: dict[str, dict[str, int | float]],
     turns: int,
     repetitions: int,
 ) -> list[dict[str, str | int | float]]:
@@ -54,7 +59,9 @@ def _generate_raw_results(
     for strategy_name in selected_strategies:
         strategy_function = STRATEGIES[strategy_name]
         for _ in range(repetitions):
-            result = run_simulation(strategy_function, starting_stamina, turns)
+            result = run_simulation(
+                strategy_function, starting_stamina, turns, actions_dict
+            )
             turns_completed = result["turns_completed"]
             rows.append(
                 {
@@ -91,16 +98,32 @@ def get_stamina_levels() -> Response:
     )
 
 
+@app.get("/api/difficulty-levels")
+def get_difficulty_levels() -> Response:
+    return Response(
+        json.dumps(list(DIFFICULTY_LEVELS.keys())),
+        mimetype="application/json",
+    )
+
+
 @app.post("/api/run")
 # Example: curl -X POST http://127.0.0.1:5000/api/run -H "Content-Type: application/json" -d '{"strategies":["balanced","risk_taking"],"stamina_level":"medium","turns":20,"repetitions":3}'
 def run_experiment_api():
     try:
-        selected_strategies, _, starting_stamina, turns, repetitions = _get_run_parameters()
+        (
+            selected_strategies,
+            _,
+            starting_stamina,
+            difficulty,
+            turns,
+            repetitions,
+        ) = _get_run_parameters()
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
 
+    actions_dict = get_actions_for_difficulty(difficulty)
     rows = _generate_raw_results(
-        selected_strategies, starting_stamina, turns, repetitions
+        selected_strategies, starting_stamina, actions_dict, turns, repetitions
     )
 
     result_columns = [
@@ -128,12 +151,20 @@ def run_experiment_api():
 @app.post("/api/download")
 def download_results_api():
     try:
-        selected_strategies, stamina_level, starting_stamina, turns, repetitions = _get_run_parameters()
+        (
+            selected_strategies,
+            stamina_level,
+            starting_stamina,
+            difficulty,
+            turns,
+            repetitions,
+        ) = _get_run_parameters()
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
 
+    actions_dict = get_actions_for_difficulty(difficulty)
     rows = _generate_raw_results(
-        selected_strategies, starting_stamina, turns, repetitions
+        selected_strategies, starting_stamina, actions_dict, turns, repetitions
     )
     csv_data = pd.DataFrame(
         rows,
